@@ -20,11 +20,13 @@ THREE.ShapeGeometry = function ( shapes, options ) {
 
 	this.type = 'ShapeGeometry';
 
-	if ( Array.isArray( shapes ) === false ) shapes = [ shapes ];
+	if( shapes ) {
+		if ( Array.isArray( shapes ) === false ) shapes = [ shapes ];
 
-	this.addShapeList( shapes, options );
+		this.addShapeList( shapes, options );
 
-	this.computeFaceNormals();
+		this.computeFaceNormals();
+	}
 
 };
 
