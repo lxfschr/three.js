@@ -2,40 +2,84 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.ImageLoader = function ( manager ) {
+import { Cache } from './Cache';
+import { DefaultLoadingManager } from './LoadingManager';
 
-	this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
 
-};
+function ImageLoader( manager ) {
 
-Object.assign( THREE.ImageLoader.prototype, {
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
+
+}
+
+Object.assign( ImageLoader.prototype, {
+
+	crossOrigin: 'Anonymous',
 
 	load: function ( url, onLoad, onProgress, onError ) {
 
-		var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
-		image.onload = function () {
+		if ( url === undefined ) url = '';
 
-			URL.revokeObjectURL( image.src );
-			if ( onLoad ) onLoad( image );
+		if ( this.path !== undefined ) url = this.path + url;
 
-		};
+		var scope = this;
 
-		if ( url.indexOf( 'data:' ) === 0 ) {
+		var cached = Cache.get( url );
 
-			image.src = url;
+		if ( cached !== undefined ) {
 
-		} else {
+			scope.manager.itemStart( url );
 
-			var loader = new THREE.XHRLoader( this.manager );
-			loader.setPath( this.path );
-			loader.setResponseType( 'blob' );
-			loader.load( url, function ( blob ) {
+			setTimeout( function () {
 
-				image.src = URL.createObjectURL( blob );
+				if ( onLoad ) onLoad( cached );
 
-			}, onProgress, onError );
+				scope.manager.itemEnd( url );
+
+			}, 0 );
+
+			return cached;
 
 		}
+
+		var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
+
+		image.addEventListener( 'load', function () {
+
+			Cache.add( url, this );
+
+			if ( onLoad ) onLoad( this );
+
+			scope.manager.itemEnd( url );
+
+		}, false );
+
+		/*
+		image.addEventListener( 'progress', function ( event ) {
+
+			if ( onProgress ) onProgress( event );
+
+		}, false );
+		*/
+
+		image.addEventListener( 'error', function ( event ) {
+
+			if ( onError ) onError( event );
+
+			scope.manager.itemEnd( url );
+			scope.manager.itemError( url );
+
+		}, false );
+
+		if ( url.substr( 0, 5 ) !== 'data:' ) {
+
+			if ( this.crossOrigin !== undefined ) image.crossOrigin = this.crossOrigin;
+
+		}
+
+		scope.manager.itemStart( url );
+
+		image.src = url;
 
 		return image;
 
@@ -56,3 +100,6 @@ Object.assign( THREE.ImageLoader.prototype, {
 	}
 
 } );
+
+
+export { ImageLoader };

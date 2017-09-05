@@ -4,6 +4,16 @@
 
 Menubar.File = function ( editor ) {
 
+	var NUMBER_PRECISION = 6;
+
+	function parseNumber( key, value ) {
+
+		return typeof value === 'number' ? parseFloat( value.toFixed( NUMBER_PRECISION ) ) : value;
+
+	}
+
+	//
+
 	var container = new UI.Panel();
 	container.setClass( 'menu' );
 
@@ -89,7 +99,7 @@ Menubar.File = function ( editor ) {
 
 		try {
 
-			output = JSON.stringify( output, null, '\t' );
+			output = JSON.stringify( output, parseNumber, '\t' );
 			output = output.replace( /[\n\t]+([\d\.e\-\[\]]+)/g, '$1' );
 
 		} catch ( e ) {
@@ -123,7 +133,7 @@ Menubar.File = function ( editor ) {
 
 		try {
 
-			output = JSON.stringify( output, null, '\t' );
+			output = JSON.stringify( output, parseNumber, '\t' );
 			output = output.replace( /[\n\t]+([\d\.e\-\[\]]+)/g, '$1' );
 
 		} catch ( e ) {
@@ -148,7 +158,7 @@ Menubar.File = function ( editor ) {
 
 		try {
 
-			output = JSON.stringify( output, null, '\t' );
+			output = JSON.stringify( output, parseNumber, '\t' );
 			output = output.replace( /[\n\t]+([\d\.e\-\[\]]+)/g, '$1' );
 
 		} catch ( e ) {
@@ -158,6 +168,29 @@ Menubar.File = function ( editor ) {
 		}
 
 		saveString( output, 'scene.json' );
+
+	} );
+	options.add( option );
+
+	//
+
+	options.add( new UI.HorizontalRule() );
+
+	// Export GLTF
+
+	var option = new UI.Row();
+	option.setClass( 'option' );
+	option.setTextContent( 'Export GLTF' );
+	option.onClick( function () {
+
+		var exporter = new THREE.GLTFExporter();
+
+		exporter.parse( editor.scene, function ( result ) {
+
+			saveString( JSON.stringify( result, null, 2 ), 'scene.gltf' );
+
+		} );
+
 
 	} );
 	options.add( option );
@@ -220,7 +253,7 @@ Menubar.File = function ( editor ) {
 
 		var vr = output.project.vr;
 
-		output = JSON.stringify( output, null, '\t' );
+		output = JSON.stringify( output, parseNumber, '\t' );
 		output = output.replace( /[\n\t]+([\d\.e\-\[\]]+)/g, '$1' );
 
 		zip.file( 'app.json', output );
@@ -233,15 +266,13 @@ Menubar.File = function ( editor ) {
 
 		} );
 
-		var loader = new THREE.XHRLoader( manager );
+		var loader = new THREE.FileLoader( manager );
 		loader.load( 'js/libs/app/index.html', function ( content ) {
 
 			var includes = [];
 
 			if ( vr ) {
 
-				includes.push( '<script src="js/VRControls.js"></script>' );
-				includes.push( '<script src="js/VREffect.js"></script>' );
 				includes.push( '<script src="js/WebVR.js"></script>' );
 
 			}
@@ -264,19 +295,7 @@ Menubar.File = function ( editor ) {
 
 		if ( vr ) {
 
-			loader.load( '../examples/js/controls/VRControls.js', function ( content ) {
-
-				zip.file( 'js/VRControls.js', content );
-
-			} );
-
-			loader.load( '../examples/js/effects/VREffect.js', function ( content ) {
-
-				zip.file( 'js/VREffect.js', content );
-
-			} );
-
-			loader.load( '../examples/js/WebVR.js', function ( content ) {
+			loader.load( '../examples/js/vr/WebVR.js', function ( content ) {
 
 				zip.file( 'js/WebVR.js', content );
 
