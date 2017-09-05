@@ -65,21 +65,24 @@ function ShapeBufferGeometry( shapes, curveSegments ) {
 	var groupCount = 0;
 
 	// allow single and array values for "shapes" parameter
+	if ( shapes ) {
 
-	if ( Array.isArray( shapes ) === false ) {
+		if ( Array.isArray( shapes ) === false ) {
 
-		addShape( shapes );
+			addShape( shapes );
 
-	} else {
+		} else {
 
-		for ( var i = 0; i < shapes.length; i ++ ) {
+			for ( var i = 0; i < shapes.length; i ++ ) {
 
-			addShape( shapes[ i ] );
+				addShape( shapes[ i ] );
 
-			this.addGroup( groupStart, groupCount, i ); // enables MultiMaterial support
+				this.addGroup( groupStart, groupCount, i ); // enables MultiMaterial support
 
-			groupStart += groupCount;
-			groupCount = 0;
+				groupStart += groupCount;
+				groupCount = 0;
+
+			}
 
 		}
 
